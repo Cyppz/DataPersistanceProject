@@ -3,16 +3,21 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using UnityEngine.InputSystem; // MIGRATED: New Input System namespace
+using UnityEngine.InputSystem;
+using System; // MIGRATED: New Input System namespace
 
 public class MainManager : MonoBehaviour
 {
+    //public event Action<int> RoundOver;
+    List<Brick> brickList = new List<Brick>();
+
     public Brick BrickPrefab;
     public int LineCount = 6;
     public Rigidbody Ball;
 
     public Text ScoreText;
     public GameObject GameOverText;
+    public Text BestScoreText;
 
     private bool m_Started = false;
     private int m_Points;
@@ -43,6 +48,7 @@ public class MainManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        ScoreText.text = $"Score :" + SaveManager.instance.currentPlayer.playerName + ": " + m_Points;
         const float step = 0.6f;
         int perLine = Mathf.FloorToInt(4.0f / step);
 
@@ -55,8 +61,10 @@ public class MainManager : MonoBehaviour
                 var brick = Instantiate(BrickPrefab, position, Quaternion.identity);
                 brick.PointValue = pointCountArray[i];
                 brick.onDestroyed.AddListener(AddPoint);
+                brickList.Add(brick);
             }
         }
+        UpdateHighScore();
     }
 
     private void Update()
@@ -66,7 +74,7 @@ public class MainManager : MonoBehaviour
             if (m_LaunchAction.WasPressedThisFrame()) // MIGRATED: was Input.GetKeyDown(KeyCode.Space)
             {
                 m_Started = true;
-                float randomDirection = Random.Range(-1.0f, 1.0f);
+                float randomDirection = UnityEngine.Random.Range(-1.0f, 1.0f);
                 Vector3 forceDir = new Vector3(randomDirection, 1, 0);
                 forceDir.Normalize();
 
@@ -79,19 +87,51 @@ public class MainManager : MonoBehaviour
             if (m_LaunchAction.WasPressedThisFrame()) // MIGRATED: was Input.GetKeyDown(KeyCode.Space)
             {
                 SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+                //update highscore-display update logic here
             }
+        }
+        if (brickList.Count <= 0)
+        {
+            GameWon();
+            m_GameOver = true;
         }
     }
 
-    void AddPoint(int point)
+    void AddPoint(int point, Brick brick)
     {
         m_Points += point;
-        ScoreText.text = $"Score : {m_Points}";
+        ScoreText.text = $"Score :" + SaveManager.instance.currentPlayer.playerName + ": " + m_Points;
+        brickList.Remove(brick);
     }
 
     public void GameOver()
     {
         m_GameOver = true;
+        SendScore();
         GameOverText.SetActive(true);
+    }
+
+    void GameWon()
+    {
+        SendScore();
+        
+    }
+
+    void SendScore()
+    {
+        SaveManager.instance.UpdateCurrentScore(m_Points);
+        UpdateHighScore();
+    }
+
+    void UpdateHighScore()
+    {
+        BestScoreText.text =
+            "Best Score:" + SaveManager.instance.highScorePlayer.playerName + ": " +
+            SaveManager.instance.highScorePlayer.highscore;
+    }
+
+    public void ToMainMenu()
+    {
+        SceneManager.LoadScene(0);
     }
 }

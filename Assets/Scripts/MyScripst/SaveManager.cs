@@ -7,21 +7,24 @@ using System.Linq;
 
 public class SaveManager : MonoBehaviour
 {
-    SaveData saveData; //should be created on first time saving, then always laoded on start.
+    public static SaveManager instance;
+    public SaveData saveData { get; private set; } //should be created on first time saving, then always laoded on start.
 
-    PlayerData currentPlayer;
+    public PlayerData currentPlayer {  get; private set; }
     PlayerData currentPlayerInData; //set this to the corresponding entry if player has played before
 
-    PlayerData highScorePlayer = new PlayerData("None", 0);
+    public PlayerData highScorePlayer { get; private set; } = new PlayerData("None", 0);
 
     private void Awake()
     {
+        if (instance != null && instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        instance = this;
         DontDestroyOnLoad(gameObject);
 
-    }
-
-    private void Start()
-    {
         Load();
         if (saveData == null) //if no data is found, create data and fill with dummy player called NONE
         {
@@ -32,9 +35,16 @@ public class SaveManager : MonoBehaviour
         GetHighscore();
     }
 
-    void UpdateHighScorePlayer(PlayerData p)
+    private void Start()
     {
-        highScorePlayer = p;
+        /*Load();
+        if (saveData == null) //if no data is found, create data and fill with dummy player called NONE
+        {
+            saveData = new SaveData();
+            saveData.dataList = new List<PlayerData>();
+            saveData.dataList.Add(highScorePlayer);
+        }
+        GetHighscore();*/
     }
 
     void GetHighscore()
@@ -46,6 +56,12 @@ public class SaveManager : MonoBehaviour
                      select player;
 
         highScorePlayer = sorted.First();
+        //Debug.Log($"High score player: {highScorePlayer.playerName} - {highScorePlayer.highscore}");
+    }
+
+    void OnRoundEnd()
+    {
+        
     }
 
     public void SetCurrentPlayer(string name, int score)
@@ -63,6 +79,11 @@ public class SaveManager : MonoBehaviour
         if (CheckExisting(pName, out PlayerData existing))
         {
             currentPlayerInData = existing;
+        }
+        else
+        {
+            saveData.dataList.Add(p);
+            currentPlayerInData = currentPlayer;
         }
     }
 
@@ -82,13 +103,25 @@ public class SaveManager : MonoBehaviour
 
     public void UpdateCurrentScore(int score)
     {
+        //Debug.Log($"Current player: {currentPlayer.playerName}");
+        //Debug.Log($"Score passed in: {score}");
+
         currentPlayer.highscore = score;
+        Save();
     }
     
     void Save()
     {
+        //Debug.Log($"currentPlayer.highscore = {currentPlayer.highscore}");
+        //Debug.Log($"currentPlayerInData.highscore = {currentPlayerInData.highscore}");
+
+        if (currentPlayerInData!=null && currentPlayer.highscore > currentPlayerInData.highscore)
+        {
+            currentPlayerInData.highscore = currentPlayer.highscore;
+        }
         string dataJson = JsonUtility.ToJson(saveData);
         File.WriteAllText(Application.persistentDataPath + "/SaveData.json", dataJson);
+        GetHighscore();
     }
 
     void Load()
