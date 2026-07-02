@@ -37,14 +37,7 @@ public class SaveManager : MonoBehaviour
 
     private void Start()
     {
-        /*Load();
-        if (saveData == null) //if no data is found, create data and fill with dummy player called NONE
-        {
-            saveData = new SaveData();
-            saveData.dataList = new List<PlayerData>();
-            saveData.dataList.Add(highScorePlayer);
-        }
-        GetHighscore();*/
+        
     }
 
     void GetHighscore()
@@ -59,13 +52,9 @@ public class SaveManager : MonoBehaviour
         //Debug.Log($"High score player: {highScorePlayer.playerName} - {highScorePlayer.highscore}");
     }
 
-    void OnRoundEnd()
-    {
-        
-    }
-
     public void SetCurrentPlayer(string name, int score)
     {
+        //adjust the name.
         name = name.ToLower();
         string pName = char.ToUpper(name[0]) + name.Substring(1);
         if (pName.Length > 10)
@@ -73,17 +62,19 @@ public class SaveManager : MonoBehaviour
             pName = pName.Substring(0, 10);
         }
 
-        PlayerData p = new PlayerData(pName, score);
-        currentPlayer = p;
-
+        //check if name exists in the saveData
         if (CheckExisting(pName, out PlayerData existing))
         {
+            //if we find a player, store a reference to the existing player.
             currentPlayerInData = existing;
+            currentPlayer = new PlayerData(pName, score);
         }
         else
         {
-            saveData.dataList.Add(p);
-            currentPlayerInData = currentPlayer;
+            //if we dont find a player, we create a new one and add it to the list and to the compare-playerdata(currentPlayer)
+            currentPlayerInData = new PlayerData (pName, score);
+            currentPlayer = new PlayerData (pName, score);
+            saveData.dataList.Add (currentPlayerInData);
         }
     }
 
@@ -93,6 +84,7 @@ public class SaveManager : MonoBehaviour
         {
             if (p.playerName == name)
             {
+                Debug.Log("found existing");
                 existing = p;
                 return true;
             }
@@ -103,17 +95,16 @@ public class SaveManager : MonoBehaviour
 
     public void UpdateCurrentScore(int score)
     {
-        //Debug.Log($"Current player: {currentPlayer.playerName}");
-        //Debug.Log($"Score passed in: {score}");
+        Debug.Log($"Current player: {currentPlayer.playerName}"); 
+        Debug.Log($"Score passed in: {score}");
 
-        currentPlayer.highscore = score;
+        currentPlayer.highscore = score; //must not point to the playerInData.
         Save();
     }
     
     void Save()
     {
-        //Debug.Log($"currentPlayer.highscore = {currentPlayer.highscore}");
-        //Debug.Log($"currentPlayerInData.highscore = {currentPlayerInData.highscore}");
+        Debug.Log(currentPlayer.highscore > currentPlayerInData.highscore);
 
         if (currentPlayerInData!=null && currentPlayer.highscore > currentPlayerInData.highscore)
         {

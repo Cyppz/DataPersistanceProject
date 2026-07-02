@@ -48,7 +48,8 @@ public class MainManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        ScoreText.text = $"Score :" + SaveManager.instance.currentPlayer.playerName + ": " + m_Points;
+        m_Points = 0;
+        ScoreText.text = $"Score: " + SaveManager.instance.currentPlayer.playerName + ": " + m_Points; 
         const float step = 0.6f;
         int perLine = Mathf.FloorToInt(4.0f / step);
 
@@ -86,21 +87,22 @@ public class MainManager : MonoBehaviour
         {
             if (m_LaunchAction.WasPressedThisFrame()) // MIGRATED: was Input.GetKeyDown(KeyCode.Space)
             {
+                SendScore();
                 SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
                 //update highscore-display update logic here
             }
         }
-        if (brickList.Count <= 0)
+        if (brickList.Count <= 0 && !m_GameOver)
         {
-            GameWon();
             m_GameOver = true;
+            GameWon();
         }
     }
 
-    void AddPoint(int point, Brick brick)
+    void AddPoint(int point, Brick brick) 
     {
         m_Points += point;
-        ScoreText.text = $"Score :" + SaveManager.instance.currentPlayer.playerName + ": " + m_Points;
+        ScoreText.text = "Score: " + SaveManager.instance.currentPlayer.playerName + ": " + m_Points;
         brickList.Remove(brick);
     }
 
