@@ -1,9 +1,10 @@
 using System.Linq;
 using TMPro;
-using UnityEditor.Overlays;
+//using UnityEditor.Overlays;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Scripting;
+using System.Runtime.InteropServices;
 
 public class MainMenu : MonoBehaviour
 {
@@ -40,7 +41,7 @@ public class MainMenu : MonoBehaviour
         UnityEditor.EditorApplication.ExitPlaymode();
 #else
         Application.Quit();
-#endif  
+#endif
     }
 
     void DisplayHighScores()
